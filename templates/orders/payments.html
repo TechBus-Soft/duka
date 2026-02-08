@@ -68,26 +68,25 @@
 							</figure>
 						</td>
 						<td>
-							<!-- col.// -->
-										<div class="col">
-											<div class="input-group input-spinner">
-												<label class="form-control">{{cart_item.quantity}}</label>
-												<div class="input-group-append">
-													<form action="{% url 'add_to_cart' cart_item.product.id %}" method="POST">
-														{% csrf_token %}
-														{% for item in cart_item.variations.all %}
-														<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
-														{% endfor %}
-													</form>
-												</div>
-											</div> <!-- input-group.// -->
-										</div> <!-- col.// -->
+							<div class="col">
+								<div class="input-group input-spinner">
+									<label class="form-control">{{cart_item.quantity}}</label>
+									<div class="input-group-append">
+										<form action="{% url 'add_to_cart' cart_item.product.id %}" method="POST">
+											{% csrf_token %}
+											{% for item in cart_item.variations.all %}
+											<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
+											{% endfor %}
+										</form>
+									</div>
+								</div>
+							</div>
 						</td>
 						<td>
 							<div class="price-wrap">
-								<var class="price">₦ {{ cart_item.sub_total }}</var>
-								<small class="text-muted">₦ {{ cart_item.product.price }} each </small>
-							</div> <!-- price-wrap .// -->
+								<var class="price">KSh {{ cart_item.sub_total }}</var>
+								<small class="text-muted">KSh {{ cart_item.product.price }} each </small>
+							</div>
 						</td>
 					</tr>
 					{% endfor %}
@@ -96,22 +95,22 @@
             </div>
         </div>
 
-	</aside> <!-- col.// -->
+	</aside>
 	<aside class="col-lg-4">
 
 		<div class="card">
 		<div class="card-body">
 			<dl class="dlist-align">
 			  <dt>Total price:</dt>
-			  <dd class="text-right">₦ {{ total }}</dd>
+			  <dd class="text-right">KSh {{ total }}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Shipping Fee:</dt>
-			  <dd class="text-right"> ₦ {{shipping_fee}}</dd>
+			  <dd class="text-right"> KSh {{shipping_fee}}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Total:</dt>
-			  <dd class="text-right text-dark b"><strong>₦ {{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>KSh {{grand_total}}</strong></dd>
 			</dl>
 			<hr>
 			<p class="text-center mb-3">
@@ -128,10 +127,6 @@
             </div>
           	</form>
 			<form id="paymentForm">
-<!--			  <div class="form-group">-->
-<!--				<label for="email-address">Email Address</label>-->
-<!--				<input class="form-control" type="email" id="email-address" placeholder="re-enter email address to get invoice" required />-->
-<!--			  </div>-->
 			  <div class="form-submit">
 				<button type="submit" class="btn btn-primary btn-block" onclick="payWithPaystack(event)"> Pay with Paystack </button>
 			  </div>
@@ -141,132 +136,122 @@
 				<button type="button" onclick="makePayment(event)" value="Submit" class="btn btn-primary btn-block">Pay with Remitta</button>
            </form>
 			 <script type="text/javascript" src="https://remitademo.net/payment/v1/remita-pay-inline.bundle.js"></script><br>
-		</div> <!-- card-body.// -->
-		</div> <!-- card.// -->
+		</div>
+		</div>
 
-</aside> <!-- col.// -->
+</aside>
 
-</div> <!-- row.// -->
-<!-- ============================ COMPONENT 1 END .// ================================= -->
+</div> <!-- row -->
 
-
-</div> <!-- container .//  -->
+</div> <!-- container -->
 </section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
 
 <script type="text/javascript">window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
 <script>
 	const paymentForm = document.getElementById('paymentForm');
-paymentForm.addEventListener("submit", payWithPaystack, false);
-function payWithPaystack(e) {
-  e.preventDefault(event);
-  let handler = PaystackPop.setup({
-    key: '{{pk_key}}',
-    email: "{{ order.email  }}",
-    amount: {{grand_total}} * 100,
-    currency: "NGN",
-    // label: "Optional string that replaces customer email"
-    onClose: function(){
-      alert('Window closed.');
-    },
-    metadata: {
-    	custom_fields: [
-			 {
-				display_name: "{{ order.full_name }}",
-				variable_name: "{{ order.full_name }}"
-			}
-    	]
-    },
-    callback: function(response){
-      let message = 'Payment complete! Reference: ' + response.reference;
-      console.log(response.reference)
-      alert(message);
-      var referenceid = response.reference;
+	paymentForm.addEventListener("submit", payWithPaystack, false);
 
-      $.ajax({
-      	data: {
-      		url: "{% url 'payments' order.id %}",
-      		csrfmiddlewaretoken: "{{ csrf_token }}",
-      		'referenceid': referenceid,
-      		'amount': {{grand_total}},
-      		'status': "completed",
-      		},
-      	// change to get if it didnt work
-      	type: "POST",
-      	url: "{% url 'payments' order.id %}",
-      	beforesend: function() {
-      		console.log("Sending request");
-      		$(".alert").text("Sending request");
-      		window.location = "{% url 'payments' order.id %}";
-      	},
-      	success: function(response) {
-      		if (response[3].status == "success") {
-      			$(".alert").removeClass("alert-warning");
-      			$(".alert").addClass("alert-success");
-      			$(".alert").text("Transaction Verified");
-      			console.log("Transaction Verified");
-      			$("form").trigger("reset");
-      		}else {
-      			$(".alert").text("Transaction reference not found");
-      		}
-      	}
-      })
-      window.location = "{% url 'payments' order.id %}";
-      callback_url = window.location;y
-    }
-  });
-  handler.openIframe();
+	function payWithPaystack(e) {
+	  e.preventDefault(event);
+	  let handler = PaystackPop.setup({
+	    key: '{{pk_key}}',
+	    email: "{{ order.email  }}",
+	    amount: {{grand_total}} * 100,
+	    currency: "KES",  <!-- ✅ Paystack currency updated to KES -->
+	    onClose: function(){
+	      alert('Window closed.');
+	    },
+	    metadata: {
+	    	custom_fields: [
+				 {
+					display_name: "{{ order.full_name }}",
+					variable_name: "{{ order.full_name }}"
+				}
+	    	]
+	    },
+	    callback: function(response){
+	      let message = 'Payment complete! Reference: ' + response.reference;
+	      console.log(response.reference)
+	      alert(message);
+	      var referenceid = response.reference;
 
-}
+	      $.ajax({
+	      	data: {
+	      		url: "{% url 'payments' order.id %}",
+	      		csrfmiddlewaretoken: "{{ csrf_token }}",
+	      		'referenceid': referenceid,
+	      		'amount': {{grand_total}},
+	      		'status': "completed",
+	      	},
+	      	type: "POST",
+	      	url: "{% url 'payments' order.id %}",
+	      	beforesend: function() {
+	      		console.log("Sending request");
+	      		$(".alert").text("Sending request");
+	      		window.location = "{% url 'payments' order.id %}";
+	      	},
+	      	success: function(response) {
+	      		if (response[3].status == "success") {
+	      			$(".alert").removeClass("alert-warning");
+	      			$(".alert").addClass("alert-success");
+	      			$(".alert").text("Transaction Verified");
+	      			console.log("Transaction Verified");
+	      			$("form").trigger("reset");
+	      		}else {
+	      			$(".alert").text("Transaction reference not found");
+	      		}
+	      	}
+	      })
+	      window.location = "{% url 'payments' order.id %}";
+	    }
+	  });
+	  handler.openIframe();
+	}
 </script>
-  <script>
+
+<script>
   const paymentform = document.getElementById('payment-form');
 	paymentform.addEventListener("submit", makePayment, false);
-      function makePayment(e) {
+
+    function makePayment(e) {
       e.preventDefault(event);
-          var form = document.querySelector("#payment-form");
-          var paymentEngine = RmPaymentEngine.init({
-              key: 'QzAwMDAyNzEyNTl8MTEwNjE4NjF8OWZjOWYwNmMyZDk3MDRhYWM3YThiOThlNTNjZTE3ZjYxOTY5NDdmZWE1YzU3NDc0ZjE2ZDZjNTg1YWYxNWY3NWM4ZjMzNzZhNjNhZWZlOWQwNmJhNTFkMjIxYTRiMjYzZDkzNGQ3NTUxNDIxYWNlOGY4ZWEyODY3ZjlhNGUwYTY=',
-             // transactionId: Math.floor(Math.random()*1101233), // Replace with a reference you generated or remove the entire field for us to auto-generate a reference for you. Note that you will be able to check the status of this transaction using this transaction Id
-              customerId: "{{ order.email }}",
-              firstName: "{{ order.full_name }}",
-              lastName: " {{ order.last_name }}",
-              email: "{{ order.email }}",
-              amount: {{ grand_total }},
-              narration: "purchase by {{ order.full_name }}",
-              onSuccess: function sendData(response) {
-                  fetch("{% url 'payments' order.id %}", {
-                  	method: "POST",
-                  	headers: {
-                  	"Content-type": "appllication/json",
-                  	"x-CSRFToken": "{{ csrf_token }}",
-                  },
-                  body: JSON.stringify({
-				  	'referenceid': response.transactionId,
-					'amount': {{grand_total}},
-					'status' : "completed",
-					})
-					})
-                  // console.log('callback Successful Response', response);
-                 //  .then((response) => response.json())
-                   .then((data) => {
-                   	window.location.href = "{% url 'payments' order.id %}"
-                   	})
+      var form = document.querySelector("#payment-form");
+      var paymentEngine = RmPaymentEngine.init({
+          key: 'QzAwMDAyNzEyNTl8MTEwNjE4NjF8OWZjOWYwNmMyZDk3MDRhYWM3YThiOThlNTNjZTE3ZjYxOTY5NDdmZWE1YzU3NDc0ZjE2ZDZjNTg1YWYxNWY3NWM4ZjMzNzZhNjNhZWZlOWQwNmJhNTFkMjIxYTRiMjYzZDkzNGQ3NTUxNDIxYWNlOGY4ZWEyODY3ZjlhNGUwYTY=',
+          customerId: "{{ order.email }}",
+          firstName: "{{ order.full_name }}",
+          lastName: " {{ order.last_name }}",
+          email: "{{ order.email }}",
+          amount: {{ grand_total }},
+          narration: "purchase by {{ order.full_name }}",
+          onSuccess: function sendData(response) {
+              fetch("{% url 'payments' order.id %}", {
+              	method: "POST",
+              	headers: {
+              	"Content-type": "appllication/json",
+              	"x-CSRFToken": "{{ csrf_token }}",
               },
-              onError: function (response) {
-                  console.log('callback Error Response', response);
+              body: JSON.stringify({
+			  	'referenceid': response.transactionId,
+				'amount': {{grand_total}},
+				'status' : "completed",
+				})
+				})
+               .then((data) => {
+               	window.location.href = "{% url 'payments' order.id %}"
+               	})
+          },
+          onError: function (response) {
+              console.log('callback Error Response', response);
 
-              },
-              onClose: function () {
-                  console.log("closed");
-              },
-			});
+          },
+          onClose: function () {
+              console.log("closed");
+          },
+		});
 
-           paymentEngine.showPaymentWidget();
+       paymentEngine.showPaymentWidget();
+    }
+</script>
 
-
-      }
-
-
-  </script>
 {% endblock %}
