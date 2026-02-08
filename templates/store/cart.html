@@ -47,29 +47,28 @@
 		</figure>
 	</td>
 	<td>
-		<!-- col.// -->
-					<div class="col">
-						<div class="input-group input-spinner">
-							<div class="input-group-prepend">
-							<a href="{% url 'remove_from_cart' cart_item.product.id cart_item.id %}"><button class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </button></a>
-							</div>
-							<label class="form-control" >{{ cart_item.quantity }}</label>
-							<div class="input-group-append">
-								<form action="{% url 'add_to_cart' cart_item.product.id %}" method="POST">
-									{% csrf_token %}
-									{% for item in cart_item.variations.all %}
-									<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
-									{% endfor %}
-									<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
-								</form>
-							</div>
-						</div> <!-- input-group.// -->
-					</div> <!-- col.// -->
+		<div class="col">
+			<div class="input-group input-spinner">
+				<div class="input-group-prepend">
+				<a href="{% url 'remove_from_cart' cart_item.product.id cart_item.id %}"><button class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </button></a>
+				</div>
+				<label class="form-control" >{{ cart_item.quantity }}</label>
+				<div class="input-group-append">
+					<form action="{% url 'add_to_cart' cart_item.product.id %}" method="POST">
+						{% csrf_token %}
+						{% for item in cart_item.variations.all %}
+						<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
+						{% endfor %}
+						<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
+					</form>
+				</div>
+			</div> <!-- input-group.// -->
+		</div> <!-- col.// -->
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">₦ {{ cart_item.sub_total }}</var>
-			<small class="text-muted">₦ {{ cart_item.product.price }} each </small>
+			<var class="price">{{ currency }} {{ cart_item.sub_total }}</var>
+			<small class="text-muted">{{ currency }} {{ cart_item.product.price }} each </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
@@ -88,15 +87,15 @@
 		<div class="card-body">
 			<dl class="dlist-align">
 			  <dt>Total price:</dt>
-			  <dd class="text-right">₦ {{ total }}</dd>
+			  <dd class="text-right">{{ currency }} {{ total }}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Shipping Fee:</dt>
-			  <dd class="text-right"> ₦ {{shipping_fee}}</dd>
+			  <dd class="text-right">{{ currency }} {{ shipping_fee }}</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Total:</dt>
-			  <dd class="text-right text-dark b"><strong>₦ {{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>{{ currency }} {{ grand_total }}</strong></dd>
 			</dl>
 			<hr>
 			<p class="text-center mb-3">
@@ -112,7 +111,6 @@
 {% endif %}
 </div> <!-- row.// -->
 <!-- ============================ COMPONENT 1 END .// ================================= -->
-
 
 </div> <!-- container .//  -->
 </section>
