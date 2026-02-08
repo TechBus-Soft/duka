@@ -21,6 +21,7 @@ from django.urls import reverse
 from coupons.validations import validate_coupon
 from coupons.models import Coupon
 
+
 def paymentview(request, id):
     current_user = request.user
     order = Order.objects.get(user=current_user, id=id)
@@ -34,12 +35,12 @@ def paymentview(request, id):
             status="completed",
             payment_method="Remita",
             created_at=datetime.datetime.now()
-
         )
         payment.save()
         order.is_ordered = True
         order.payment = payment
         order.save()
+
         for item in cart_items:
             orderproduct = OrderProduct()
             orderproduct.order_id = order.id
@@ -56,12 +57,12 @@ def paymentview(request, id):
             orderproduct = OrderProduct.objects.get(id=orderproduct.id)
             orderproduct.variations.set(product_variation)
             orderproduct.save()
-        #     # reduce quantity of sold products
-        #
-        product = Product.objects.get(id=item.product_id)
-        product.stock -= item.quantity
-        product.save()
-        # send order recived email
+
+            product = Product.objects.get(id=item.product_id)
+            product.stock -= item.quantity
+            product.save()
+
+        # send order received email
         current_site = get_current_site(request)
         mail_subject = 'Thank you for your order!'
         message = render_to_string('orders/order_received_email.html', {
@@ -71,6 +72,7 @@ def paymentview(request, id):
         to_email = current_user.email
         send_email = EmailMessage(mail_subject, message, to=[to_email])
         send_email.send()
+
         # clear cart
         CartItem.objects.filter(user=current_user).delete()
 
@@ -91,7 +93,6 @@ def paymentview(request, id):
             order.is_ordered = True
             order.payment = payment
             order.save()
-            # move cart items to order product table
 
             for item in cart_items:
                 orderproduct = OrderProduct()
@@ -109,13 +110,11 @@ def paymentview(request, id):
                 orderproduct = OrderProduct.objects.get(id=orderproduct.id)
                 orderproduct.variations.set(product_variation)
                 orderproduct.save()
-        #
-        #     # reduce quantity of sold products
-        #
+
                 product = Product.objects.get(id=item.product_id)
                 product.stock -= item.quantity
                 product.save()
-        #     # send order recived email
+
             current_site = get_current_site(request)
             mail_subject = 'Thank you for your order!'
             message = render_to_string('orders/order_received_email.html', {
@@ -125,10 +124,10 @@ def paymentview(request, id):
             to_email = current_user.email
             send_email = EmailMessage(mail_subject, message, to=[to_email])
             send_email.send()
+
         # clear cart
         CartItem.objects.filter(user=current_user).delete()
 
-        # send order number and transaction id back to user in thank u page
     try:
         ordered_products = OrderProduct.objects.filter(order_id=order.id)
         context = {
@@ -155,20 +154,18 @@ def GeneratePdf(request, order_id):
     }
     open('templates/temp.html', "w+").write(render_to_string('orders/reciept.html', context))
 
-    # Converting the HTML template into a PDF file
     pdf = html_to_pdf('temp.html')
-
-    # rendering the template
     return HttpResponse(pdf, content_type='application/pdf')
 
 
-def placeorderview(request,  total=0, quantity=0):
+def placeorderview(request, total=0, quantity=0):
     current_user = request.user
     profile = UserProfile.objects.get(user=current_user)
     cart_items = CartItem.objects.filter(user=current_user)
     cart_count = cart_items.count()
     if cart_count <= 0:
         return redirect('store')
+
     grand_total = 0
     shipping_fee = 0
 
@@ -177,6 +174,7 @@ def placeorderview(request,  total=0, quantity=0):
         quantity += cart_item.quantity
     shipping_fee = (2 * total) / 100
     grand_total = total + shipping_fee
+
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
@@ -201,6 +199,7 @@ def placeorderview(request,  total=0, quantity=0):
             data.total = grand_total
             data.ip = request.META.get('REMOTE_ADDR')
             data.save()
+
             profile.address_line_1 = form.cleaned_data['address_line_1']
             profile.address_line_2 = form.cleaned_data['address_line_2']
             profile.state = form.cleaned_data['state']
@@ -212,14 +211,6 @@ def placeorderview(request,  total=0, quantity=0):
             profile.shipping_country = form.cleaned_data['shipping_country']
             profile.save()
 
-            # generate order number whth date and order id
-            # yr = int(datetime.date.today().strftime('%Y'))
-            # dt = int(datetime.date.today().strftime('%d'))
-            # mt = int(datetime.date.today().strftime('%m'))
-            # d = datetime.date(yr,mt,dt)
-            #
-            # current_date = d.strftime("%Y%m%d")
-            #
             order_number = data.id
             data.order_number = data.id
             data.save()
@@ -227,6 +218,7 @@ def placeorderview(request,  total=0, quantity=0):
             order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)
             paystack_pubkey = settings.PAYSTACK_PUBLIC_KEY
             stripe_pubkey = settings.STRIPE_PUBLISHABLE_KEY
+
             context = {
                 'order': order,
                 'cart_items': cart_items,
@@ -235,11 +227,12 @@ def placeorderview(request,  total=0, quantity=0):
                 'grand_total': data.total,
                 'pk_key': paystack_pubkey,
                 'stripe_pubkey': stripe_pubkey,
+                'currency': 'KES',  # ✅ added for Paystack
             }
             return render(request, 'orders/payments.html', context)
-
     else:
         return redirect('checkout')
+
 
 from coupons.models import Coupon, CouponUser
 
@@ -258,41 +251,24 @@ def apply_coupon(request, id):
 
     if request.method == 'POST':
         coupon_code = request.POST['coupon']
-        print(coupon_code)
         status = validate_coupon(coupon_code=coupon_code, user=request.user)
         if status['valid']:
-            coupon_code = Coupon.objects.get(code=coupon_code)
-            coupon_code.use_coupon(user=request.user)
-            order.coupon = request.POST['coupon']
-            order.order_total = coupon_code.get_discounted_value(order.order_total)
+            coupon_obj = Coupon.objects.get(code=coupon_code)
+            coupon_obj.use_coupon(user=request.user)
+            order.coupon = coupon_code
+            order.order_total = coupon_obj.get_discounted_value(order.order_total)
             order.save()
-            coupon_code.save()
+            coupon_obj.save()
             messages.success(request, 'You have successfully applied a coupon on your order')
-            context = {
-                'order': order,
-                'cart_items': cart_items,
-                'total': total,
-                'pk_key': paystack_pubkey,
-                'stripe_pubkey': stripe_pubkey,
-            }
-            return render(request, 'orders/coupon_applied.html', context)
         else:
-            messages.error(request, f'{status['message']}')
-            context = {
-                'order': order,
-                'cart_items': cart_items,
-                'total': total,
-                'pk_key': paystack_pubkey,
-                'stripe_pubkey': stripe_pubkey,
-            }
-            return render(request, 'orders/coupon_applied.html', context)
-    else:
+            messages.error(request, status['message'])
 
-        context = {
-            'order': order,
-            'cart_items': cart_items,
-            'total': total,
-            'pk_key': paystack_pubkey,
-            'stripe_pubkey': stripe_pubkey,
-        }
-        return render(request, 'orders/coupon_applied.html', context)
+    context = {
+        'order': order,
+        'cart_items': cart_items,
+        'total': total,
+        'pk_key': paystack_pubkey,
+        'stripe_pubkey': stripe_pubkey,
+        'currency': 'KES',  # ✅ added for Paystack
+    }
+    return render(request, 'orders/coupon_applied.html', context)
