@@ -68,7 +68,6 @@ def add_to_cart(request, product_id):
             for item in request.POST:
                 key = item
                 value = request.POST[key]
-                print(key)
                 try:
                     variation = Variation.objects.get(products=product, variation_category__iexact=key, variation_value__iexact=value)
                     product_variation.append(variation)
@@ -116,7 +115,7 @@ def add_to_cart(request, product_id):
         return redirect('cart')
 
 
-# to reduce item qantity in cart
+# to reduce item quantity in cart
 def remove_from_cart(request, product_id, cart_item_id):
     product = get_object_or_404(Product, id=product_id)
     try:
@@ -144,41 +143,10 @@ def remove_item(request, product_id, cart_item_id):
         cart = Cart.objects.get(cart_id=_cart_id(request))
         cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
     cart_item.delete()
-    # cart_item.save()
     return redirect('cart')
 
 
 def cart(request, total=0, quantity=0, cart_items=None):
-    try:
-        shipping_fee = (2 * total) / 100
-        grand_total = total + shipping_fee
-        if request.user.is_authenticated:
-            cart_items = CartItem.objects.filter(user= request.user, is_active=True)
-        else:
-            cart = Cart.objects.get(cart_id=_cart_id(request))
-            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-        for cart_item in cart_items:
-            total += (cart_item.product.price*cart_item.quantity)
-            quantity += cart_item.quantity
-        shipping_fee = (2*total)/100
-        grand_total = total + shipping_fee
-    except ObjectDoesNotExist:
-        pass
-    context = {
-        'total': total,
-        'quantity': quantity,
-        'cart_items': cart_items,
-        'shipping_fee': shipping_fee,
-        'grand_total': grand_total,
-    }
-    return render(request, 'store/cart.html', context)
-
-@login_required(login_url='login')
-def checkoutview(request, total=0, quantity=0, cart_items=None):
-    current_user = UserProfile.objects.get(user=request.user)
-    shipping_fee = (2 * total) / 100
-    grand_total = total + shipping_fee
-
     try:
         if request.user.is_authenticated:
             cart_items = CartItem.objects.filter(user=request.user, is_active=True)
@@ -188,10 +156,40 @@ def checkoutview(request, total=0, quantity=0, cart_items=None):
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
             quantity += cart_item.quantity
-            shipping_fee = (2 * total) / 100
-            grand_total = total + shipping_fee
+        shipping_fee = (2 * total) / 100
+        grand_total = total + shipping_fee
     except ObjectDoesNotExist:
-        pass
+        shipping_fee = 0
+        grand_total = 0
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'shipping_fee': shipping_fee,
+        'grand_total': grand_total,
+        'currency': 'KSh',  # <<< Added currency context
+    }
+    return render(request, 'store/cart.html', context)
+
+
+@login_required(login_url='login')
+def checkoutview(request, total=0, quantity=0, cart_items=None):
+    current_user = UserProfile.objects.get(user=request.user)
+    try:
+        if request.user.is_authenticated:
+            cart_items = CartItem.objects.filter(user=request.user, is_active=True)
+        else:
+            cart = Cart.objects.get(cart_id=_cart_id(request))
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        for cart_item in cart_items:
+            total += (cart_item.product.price * cart_item.quantity)
+            quantity += cart_item.quantity
+        shipping_fee = (2 * total) / 100
+        grand_total = total + shipping_fee
+    except ObjectDoesNotExist:
+        shipping_fee = 0
+        grand_total = 0
+
     paystack_pubkey = settings.PAYSTACK_PUBLIC_KEY
     stripe_pubkey = settings.STRIPE_PUBLISHABLE_KEY
     context = {
@@ -202,6 +200,7 @@ def checkoutview(request, total=0, quantity=0, cart_items=None):
         'grand_total': grand_total,
         'pk_key': paystack_pubkey,
         'stripe_pubkey': stripe_pubkey,
+        'currency': 'KSh',  # <<< Added currency context
         'first_name': current_user.user.first_name,
         'last_name': current_user.user.last_name,
         'email': current_user.user.email,
