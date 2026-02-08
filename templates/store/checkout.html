@@ -10,14 +10,14 @@
 <section class="section-content padding-y bg">
 <div class="container">
     {% if messages %}
-                    <div class="col-md-8">
-                        {% for message in messages %}
-                          <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                          </div>
-                        {% endfor %}
-                        </div>
-                    {% endif %}
+        <div class="col-md-8">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
 <!-- ============================ COMPONENT 1 ================================= -->
 <form action="{% url 'place_order' %}" method="POST">
@@ -160,8 +160,8 @@
                     </td>
                     <td>
                         <div class="price-wrap">
-                            <var class="price">₦ {{ cart_item.sub_total }}</var>
-                            <small class="text-muted">₦ {{ cart_item.product.price }} each </small>
+                            <var class="price">{{ currency }} {{ cart_item.sub_total }}</var>
+                            <small class="text-muted">{{ currency }} {{ cart_item.product.price }} each </small>
                         </div> <!-- price-wrap .// -->
                     </td>
                 </tr>
@@ -170,15 +170,15 @@
                 </table>
                 <dl class="dlist-align">
                   <dt>Total price:</dt>
-                  <dd class="text-right">₦ {{ total }}</dd>
+                  <dd class="text-right">{{ currency }} {{ total }}</dd>
                 </dl>
                 <dl class="dlist-align">
                   <dt>Shipping Fee:</dt>
-                  <dd class="text-right"> ₦ {{shipping_fee}}</dd>
+                  <dd class="text-right">{{ currency }} {{ shipping_fee }}</dd>
                 </dl>
                 <dl class="dlist-align">
                   <dt>Grand Total:</dt>
-                  <dd class="text-right text-dark b"><strong>₦ {{grand_total}}</strong></dd>
+                  <dd class="text-right text-dark b"><strong>{{ currency }} {{ grand_total }}</strong></dd>
                 </dl>
                 <hr>
                 <p class="text-center mb-3">
