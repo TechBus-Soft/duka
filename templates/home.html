@@ -28,7 +28,7 @@
                                             data-scs-animation-delay="300">
                                             <span class="font-size-13">FROM</span>
                                             <div class="font-size-50 font-weight-bold text-lh-45">
-                                                <sup class="">₦</sup>{{ product.product.price }}<sup class="">99</sup>
+                                                <sup class="">KES</sup>{{ product.product.price }}<sup class="">99</sup>
                                             </div>
                                         </div>
                                         <a href="{% url 'product_detail' product.product.category.cat_slug product.product.slug %}" class="btn btn-primary transition-3d-hover rounded-lg font-weight-normal py-2 px-md-7 px-3 font-size-16"
@@ -62,7 +62,7 @@
                                     <h3 class="font-size-22 mb-0 font-weight-normal text-lh-28 max-width-120">Special Offer</h3>
                                     <div class="d-flex align-items-center flex-column justify-content-center bg-primary rounded-pill height-75 width-75 text-lh-1">
                                         <span class="font-size-12">Save</span>
-                                        <div class="font-size-20 font-weight-bold">₦2000</div>
+                                        <div class="font-size-20 font-weight-bold">KES2000</div>
                                     </div>
                                 </div>
                                 <div class="mb-4">
@@ -70,8 +70,8 @@
                                 </div>
                                 <h5 class="mb-2 font-size-14 text-center mx-auto max-width-180 text-lh-18"><a href="../shop/single-product-fullwidth.html" class="text-blue font-weight-bold">{{product.product}}</a></h5>
                                 <div class="d-flex align-items-center justify-content-center mb-3">
-                                    <del class="font-size-18 mr-2 text-gray-2">₦20,00</del>
-                                    <ins class="font-size-30 text-red text-decoration-none">₦{{ product.product.price }}</ins>
+                                    <del class="font-size-18 mr-2 text-gray-2">KES20,00</del>
+                                    <ins class="font-size-30 text-red text-decoration-none">KES{{ product.product.price }}</ins>
                                 </div>
                                 <div class="mb-3 mx-2">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -156,7 +156,7 @@
                                                             </div>
                                                             <div class="flex-center-between mb-1">
                                                                 <div class="prodcut-price">
-                                                                    <div class="text-gray-100">₦{{ product.product.price }}</div>
+                                                                    <div class="text-gray-100">KES{{ product.product.price }}</div>
                                                                 </div>
                                                                 <div class="d-none d-xl-block prodcut-add-cart">
                                                                     <a href="{% url 'add_to_cart' product.product.id %}" class="btn-add-cart btn-primary transition-3d-hover"><i class="ec ec-add-to-cart"></i></a>
@@ -195,7 +195,7 @@
                                                             </div>
                                                             <div class="flex-center-between mb-1">
                                                                 <div class="prodcut-price">
-                                                                    <div class="text-gray-100">₦{{ product.price }}</div>
+                                                                    <div class="text-gray-100">KES{{ product.price }}</div>
                                                                 </div>
                                                                 <div class="d-none d-xl-block prodcut-add-cart">
                                                                     <a href="{% url 'add_to_cart' product.id %}" class="btn-add-cart btn-primary transition-3d-hover"><i class="ec ec-add-to-cart"></i></a>
