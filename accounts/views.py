@@ -9,8 +9,7 @@ from cart.views import _cart_id
 import requests
 from orders.models import Order, OrderProduct
 
-# USer Account Verification Imports
-
+# User Account Verification Imports
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -37,6 +36,7 @@ def registerview(request):
                 password=password
             )
             user.phone_number = phone_number
+            user.is_active = True  # ✅ Allow login immediately
             user.save()
 
             # user profile creation
@@ -45,7 +45,10 @@ def registerview(request):
             profile.profile_picture = 'default/default.jpeg'
             profile.save()
 
-            # user activation mail
+            # ===============================
+            # Email verification is now disabled
+            # ===============================
+            """
             current_site = get_current_site(request)
             mail_subject = 'Please Activate Your Account'
             message = render_to_string('accounts/account_verification_email.html', {
@@ -58,6 +61,11 @@ def registerview(request):
             send_email = EmailMessage(mail_subject, message, to=[to_email])
             send_email.send()
             return redirect('/account/login/?command=verification&email=' + email)
+            """
+
+            messages.success(request, 'Registration successful. You can now log in.')
+            return redirect('login')
+
     else:
         form = RegistrationForm()
     context = {
@@ -132,6 +140,7 @@ def logoutview(request):
 
 
 def activateview(request, uidb64, token):
+    # email verification is disabled, this view can stay for future use
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Account._default_manager.get(pk=uid)
@@ -146,8 +155,9 @@ def activateview(request, uidb64, token):
         messages.error(request, 'Invalid Activation Link')
         return redirect('register')
 
+
 @login_required(login_url='login')
-def dashboardview (request):
+def dashboardview(request):
     orders = Order.objects.order_by('created_at').filter(user_id=request.user.id, is_ordered=True)
     orders_count = orders.count()
     userprofile = UserProfile.objects.get(user_id=request.user.id)
@@ -174,7 +184,7 @@ def forgotpasswordview(request):
             to_email = email
             send_email = EmailMessage(mail_subject, message, to=[to_email])
             send_email.send()
-            messages.success(request, 'A mail with a password reset link has been sent to yur email address [' + email + ']' )
+            messages.success(request, 'A mail with a password reset link has been sent to your email address [' + email + ']' )
             return redirect('login')
         else:
             messages.error(request, 'Account with email ' + email + ' does not exist')
@@ -206,10 +216,10 @@ def resetpasswordview(request):
             user = Account.objects.get(pk=uid)
             user.set_password(password)
             user.save()
-            messages.success(request, 'You have successfully reset your password , please login')
+            messages.success(request, 'You have successfully reset your password, please login')
             return redirect('login')
         else:
-            messages.error(request, 'passwords do not match')
+            messages.error(request, 'Passwords do not match')
             return redirect('reset-password')
     return render(request, 'accounts/reset-password.html')
 
@@ -259,13 +269,13 @@ def changepasswordview(request):
             if success:
                 user.set_password(new_password)
                 user.save()
-                messages.success(request, 'Your password has been sucessfully updated')
+                messages.success(request, 'Your password has been successfully updated')
                 return redirect('dashboard')
             else:
                 messages.error(request, 'Please enter the valid current password')
                 return redirect('change_password')
         else:
-            messages.error(request, 'passwords do not match')
+            messages.error(request, 'Passwords do not match')
             return redirect('change_password')
     return render(request, 'accounts/change_password.html')
 
@@ -285,4 +295,3 @@ def orderdetailview(request, order_id):
         'subtotal': subtotal
     }
     return render(request, 'accounts/order-detail.html', context)
-
